@@ -40,6 +40,7 @@ public class RepositoryDatasourceManager implements IDatasourceManager {
     private UserService userService;
     private static final Logger log = LoggerFactory.getLogger(RepositoryDatasourceManager.class);
     public void load() {
+        log.info("load repository Datasource");
         try {
             irm.start(userService);
         } catch (RepositoryException e) {
@@ -79,6 +80,7 @@ public class RepositoryDatasourceManager implements IDatasourceManager {
     }
 
     public void unload() {
+        log.info("shutting down jackrabbit repository");
         irm.shutdown();
     }
 

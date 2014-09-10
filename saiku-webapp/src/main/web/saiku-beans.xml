@@ -4,11 +4,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
-    <!--	<bean id="classpathDsManager"
-            class="org.saiku.service.datasource.ClassPathResourceDatasourceManager">
-            <property name="path" value="res:saiku-datasources" />
-        </bean>-->
-    <bean id="repositoryDsManager" class="org.saiku.service.datasource.RepositoryDatasourceManager" init-method="load">
+    <bean id="classpathDsManager" class="org.saiku.service.datasource.ClassPathResourceDatasourceManager">
+			<property name="path" value="res:saiku" />
+    </bean>
+
+    <bean id="repositoryDsManager" class="org.saiku.service.datasource.RepositoryDatasourceManager" init-method="load" destroy-method="unload">
         <property name="userService" ref="userServiceBean"/>
     </bean>
 
@@ -21,10 +21,13 @@
         <property name="authenticationManager" ref="authenticationManager" />
     </bean>
 
-    <bean id="connectionManager" class="org.saiku.web.impl.SecurityAwareConnectionManager" init-method="init" destroy-method="destroy">
+<!--     <bean id="connectionManager" class="org.saiku.web.impl.SecurityAwareConnectionManager" init-method="init" destroy-method="destroy">
         <property name="dataSourceManager" ref="repositoryDsManager" />
         <property name="sessionService" ref="sessionService" />
+    </bean> -->
 
+    <bean id="connectionManager" class="org.saiku.datasources.connection.impl.SimpleConnectionManager" init-method="init">
+        <property name="dataSourceManager" ref="classpathDsManager" />
     </bean>
 
     <bean id="datasourceServiceBean" class="org.saiku.service.datasource.DatasourceService">
@@ -85,7 +88,7 @@
     </bean>
 
     <bean id="platformBean" class="org.saiku.service.PlatformUtilsService">
-        <property name="path" value="../webapps/ROOT/js/saiku/plugins/"/>
+        <property name="pluginsDirectory" value="file:${catalina.base}/webapps/ROOT/js/saiku/plugins/"/>
     </bean>
 
     <bean id="infoResource" class="org.saiku.web.rest.resources.InfoResource">

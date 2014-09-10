@@ -17,6 +17,7 @@
 		<spring.security.version>3.0.3.RELEASE</spring.security.version>
 		<enunciate.version>1.28</enunciate.version>
 		<jersey.version>1.11</jersey.version>
+	    <maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
 
 	<build>
@@ -150,6 +151,12 @@
 			<groupId>org.jasig.cas.client</groupId>
 			<artifactId>cas-client-core</artifactId>
 			<version>3.3.2</version>
+			<exclusions>
+			<exclusion>
+   				<groupId>org.slf4j</groupId>
+				<artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jasig.cas.client</groupId>

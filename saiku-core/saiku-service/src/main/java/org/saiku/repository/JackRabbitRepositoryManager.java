@@ -89,8 +89,11 @@ public class JackRabbitRepositoryManager implements IRepositoryManager {
         this.userService = userService;
         if (session == null) {
             log.info("starting repo");
-            String xml = "../../repository/configuration.xml";
-            String dir = "../../repository/data";
+            //String xml = "../../repository/configuration.xml";
+            //String dir = "../../repository/data";
+            String catalinaDir = System.getProperty("catalina.base");
+            String xml = catalinaDir +File.separator+"repository"+File.separator+"configuration.xml";
+            String dir = catalinaDir +File.separator+"repository"+File.separator+"data";
             RepositoryConfig config = RepositoryConfig.create(xml, dir);
             repository = RepositoryImpl.create(config);
             log.info("repo started");
@@ -166,14 +169,14 @@ public class JackRabbitRepositoryManager implements IRepositoryManager {
     }
 
     public void shutdown() {
-        ((TransientRepository) repository).shutdown();
-        String repositoryLocation = ((TransientRepository) repository).getHomeDir();
-        try {
-            FileUtils.deleteDirectory(new File(repositoryLocation));
-        } catch (final IOException e) {
-            System.out.println(e.getLocalizedMessage());
-            //TODO FIX
-        }
+        ((RepositoryImpl) repository).shutdown();
+//        String repositoryLocation = ((TransientRepository) repository).getHomeDir();
+//        try {
+//          //  FileUtils.deleteDirectory(new File(repositoryLocation));
+//        } catch (final IOException e) {
+//            System.out.println(e.getLocalizedMessage());
+//            //TODO FIX
+//        }
         repository = null;
         session = null;
     }
@@ -652,112 +655,133 @@ public class JackRabbitRepositoryManager implements IRepositoryManager {
     public void createDataSources() throws RepositoryException {
 
         NodeTypeManager manager = session.getWorkspace().getNodeTypeManager();
-        NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
-        ntt.setName("nt:olapdatasource");
+        
+        String saikuOldapDataSourceNodeName = "nt:olapdatasource";
+        if(!manager.hasNodeType(saikuOldapDataSourceNodeName)) {
+            NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
+            ntt.setName(saikuOldapDataSourceNodeName);
 
-        String[] str = new String[]{"nt:file"};
-        ntt.setDeclaredSuperTypeNames(str);
-        ntt.setMixin(true);
+            String[] str = new String[]{"nt:file"};
+            ntt.setDeclaredSuperTypeNames(str);
+            ntt.setMixin(true);
 
-        PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
+            PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
 
-        pdt3.setName("jcr:data");
-        pdt3.setRequiredType(PropertyType.STRING);
+            pdt3.setName("jcr:data");
+            pdt3.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
+            PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
 
-        pdt4.setName("enabled");
-        pdt4.setRequiredType(PropertyType.STRING);
+            pdt4.setName("enabled");
+            pdt4.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
+            PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
 
-        pdt5.setName("owner");
-        pdt5.setRequiredType(PropertyType.STRING);
+            pdt5.setName("owner");
+            pdt5.setRequiredType(PropertyType.STRING);
 
 
-        ntt.getPropertyDefinitionTemplates().add(pdt3);
-        ntt.getPropertyDefinitionTemplates().add(pdt4);
-        ntt.getPropertyDefinitionTemplates().add(pdt5);
-        manager.registerNodeType(ntt, false);
+            ntt.getPropertyDefinitionTemplates().add(pdt3);
+            ntt.getPropertyDefinitionTemplates().add(pdt4);
+            ntt.getPropertyDefinitionTemplates().add(pdt5);
+            manager.registerNodeType(ntt, false);
+        }
+        else {
+        	log.info("node type "+ saikuOldapDataSourceNodeName +" already exist, skipping");
+        }
+
     }
 
     public void createSchemas() throws RepositoryException {
 
         NodeTypeManager manager =
                 session.getWorkspace().getNodeTypeManager();
-        NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
-        ntt.setName("nt:mondrianschema");
-        //ntt.setPrimaryItemName("nt:file");
-        String[] str = new String[]{"nt:file"};
-        ntt.setDeclaredSuperTypeNames(str);
-        ntt.setMixin(true);
-        PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
+        
+        String saikuMondrianSchemaNodeName = "nt:mondrianschema";
+        if(!manager.hasNodeType(saikuMondrianSchemaNodeName)) {
+            NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
+            ntt.setName(saikuMondrianSchemaNodeName);
+            //ntt.setPrimaryItemName("nt:file");
+            String[] str = new String[]{"nt:file"};
+            ntt.setDeclaredSuperTypeNames(str);
+            ntt.setMixin(true);
+            PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
 
-        pdt.setName("schemaname");
-        pdt.setRequiredType(PropertyType.STRING);
-        pdt.isMultiple();
-        PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
+            pdt.setName("schemaname");
+            pdt.setRequiredType(PropertyType.STRING);
+            pdt.isMultiple();
+            PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
 
-        pdt2.setName("cubenames");
-        pdt2.setRequiredType(PropertyType.STRING);
-        pdt2.isMultiple();
+            pdt2.setName("cubenames");
+            pdt2.setRequiredType(PropertyType.STRING);
+            pdt2.isMultiple();
 
-        PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
+            PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
 
-        pdt3.setName("jcr:data");
-        pdt3.setRequiredType(PropertyType.STRING);
+            pdt3.setName("jcr:data");
+            pdt3.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
-        pdt4.setName("owner");
-        pdt4.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
+            pdt4.setName("owner");
+            pdt4.setRequiredType(PropertyType.STRING);
 
-        ntt.getPropertyDefinitionTemplates().add(pdt);
-        ntt.getPropertyDefinitionTemplates().add(pdt2);
-        ntt.getPropertyDefinitionTemplates().add(pdt3);
-        ntt.getPropertyDefinitionTemplates().add(pdt4);
+            ntt.getPropertyDefinitionTemplates().add(pdt);
+            ntt.getPropertyDefinitionTemplates().add(pdt2);
+            ntt.getPropertyDefinitionTemplates().add(pdt3);
+            ntt.getPropertyDefinitionTemplates().add(pdt4);
 
 
-        manager.registerNodeType(ntt, false);
+            manager.registerNodeType(ntt, false);        	
+        } else {
+        	log.info("node type "+ saikuMondrianSchemaNodeName +" already exist, skipping");
+        }
+        
     }
 
     public void createFiles() throws RepositoryException {
 
         NodeTypeManager manager =
                 session.getWorkspace().getNodeTypeManager();
-        NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
-        ntt.setName("nt:saikufiles");
-        String[] str = new String[]{"nt:file"};
-        ntt.setDeclaredSuperTypeNames(str);
-        ntt.setMixin(true);
-        PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
-        pdt.setName("owner");
-        pdt.setRequiredType(PropertyType.STRING);
+        
+        String saikuFileNodeName = "nt:saikufiles";
+        if(!manager.hasNodeType(saikuFileNodeName)) {
+            NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
+            ntt.setName(saikuFileNodeName);
+            String[] str = new String[]{"nt:file"};
+            ntt.setDeclaredSuperTypeNames(str);
+            ntt.setMixin(true);
+            PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
+            pdt.setName("owner");
+            pdt.setRequiredType(PropertyType.STRING);
 
 
-        PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
-        pdt2.setName("type");
-        pdt2.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
+            pdt2.setName("type");
+            pdt2.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
-        pdt4.setName("roles");
-        pdt4.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
+            pdt4.setName("roles");
+            pdt4.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
-        pdt5.setName("users");
-        pdt5.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
+            pdt5.setName("users");
+            pdt5.setRequiredType(PropertyType.STRING);
 
 
-        PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
-        pdt3.setName("jcr:data");
-        pdt3.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt3 = manager.createPropertyDefinitionTemplate();
+            pdt3.setName("jcr:data");
+            pdt3.setRequiredType(PropertyType.STRING);
 
-        ntt.getPropertyDefinitionTemplates().add(pdt);
-        ntt.getPropertyDefinitionTemplates().add(pdt2);
-        ntt.getPropertyDefinitionTemplates().add(pdt3);
-        ntt.getPropertyDefinitionTemplates().add(pdt4);
-        ntt.getPropertyDefinitionTemplates().add(pdt5);
+            ntt.getPropertyDefinitionTemplates().add(pdt);
+            ntt.getPropertyDefinitionTemplates().add(pdt2);
+            ntt.getPropertyDefinitionTemplates().add(pdt3);
+            ntt.getPropertyDefinitionTemplates().add(pdt4);
+            ntt.getPropertyDefinitionTemplates().add(pdt5);
 
-        manager.registerNodeType(ntt, false);
+            manager.registerNodeType(ntt, false);      	
+        } else {
+        	log.info("node type "+ saikuFileNodeName +" already exist, skipping");
+        }
     }
 
     public void createFileMixin(String type) throws RepositoryException {
@@ -808,36 +832,42 @@ public class JackRabbitRepositoryManager implements IRepositoryManager {
 
         NodeTypeManager manager =
                 session.getWorkspace().getNodeTypeManager();
-        NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
-        ntt.setName("nt:saikufolders");
-        String[] str = new String[]{"nt:folder"};
-        ntt.setDeclaredSuperTypeNames(str);
-        ntt.setMixin(true);
-        PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
-        pdt.setName("owner");
-        pdt.setRequiredType(PropertyType.STRING);
+        
+        String saikuFolderNodeName = "nt:saikufolders";
+        if(!manager.hasNodeType(saikuFolderNodeName)) {
+            NodeTypeTemplate ntt = manager.createNodeTypeTemplate();
+            ntt.setName(saikuFolderNodeName);
+            String[] str = new String[]{"nt:folder"};
+            ntt.setDeclaredSuperTypeNames(str);
+            ntt.setMixin(true);
+            PropertyDefinitionTemplate pdt = manager.createPropertyDefinitionTemplate();
+            pdt.setName("owner");
+            pdt.setRequiredType(PropertyType.STRING);
 
 
-        PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
-        pdt2.setName("type");
-        pdt2.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt2 = manager.createPropertyDefinitionTemplate();
+            pdt2.setName("type");
+            pdt2.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
-        pdt4.setName("roles");
-        pdt4.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt4 = manager.createPropertyDefinitionTemplate();
+            pdt4.setName("roles");
+            pdt4.setRequiredType(PropertyType.STRING);
 
-        PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
-        pdt5.setName("users");
-        pdt5.setRequiredType(PropertyType.STRING);
+            PropertyDefinitionTemplate pdt5 = manager.createPropertyDefinitionTemplate();
+            pdt5.setName("users");
+            pdt5.setRequiredType(PropertyType.STRING);
 
 
 
-        ntt.getPropertyDefinitionTemplates().add(pdt);
-        ntt.getPropertyDefinitionTemplates().add(pdt2);
-        ntt.getPropertyDefinitionTemplates().add(pdt4);
-        ntt.getPropertyDefinitionTemplates().add(pdt5);
+            ntt.getPropertyDefinitionTemplates().add(pdt);
+            ntt.getPropertyDefinitionTemplates().add(pdt2);
+            ntt.getPropertyDefinitionTemplates().add(pdt4);
+            ntt.getPropertyDefinitionTemplates().add(pdt5);
 
-        manager.registerNodeType(ntt, false);
+            manager.registerNodeType(ntt, false);        	
+        } else {
+        	log.info("node type "+ saikuFolderNodeName +" already exist, skipping");
+        }
     }
 
     private List<IRepositoryObject> getRepoObjects(Node files, String fileType, String username, List<String> roles) {
